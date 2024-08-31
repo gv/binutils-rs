@@ -28,29 +28,45 @@ The 4th argument is a styled fprintf function.
 
 Here we will implement copy_buffer_styled, which will just be a wrapper that ignores style changes.
 ***/
-#define BUFFER_SIZE 512
-char buffer_asm[BUFFER_SIZE];
 int copy_buffer(void* useless, const char* format, ...) {
     // Use the parameter to prevent optimization
     (void)useless;  // mark as unused
 
+
     va_list ap;
     va_start(ap, format);
     
-    // Use return value to check for truncation
-    int result = vsnprintf(buffer_asm, BUFFER_SIZE, format, ap);
+    int len = vsnprintf(NULL, 0, format, ap);
     
     va_end(ap);
 
-    if (result < 0 || result >= BUFFER_SIZE) {
+    if (len < 0) {
+        fprintf(stderr, "Warning: vsnprintf \n");
+    }
+
+    char * buffer_asm = malloc(len + 1);
+
+    if (!buffer_asm) {
+        fprintf(stderr, "Warning: buffer_asm malloc failed \n");
+    }
+
+    va_start(ap, format);
+    // Use return value to check for truncation
+    int result = vsnprintf(buffer_asm, len + 1, format, ap);
+    
+    va_end(ap);
+
+    if (result < 0 || result >= len + 1) {
         fprintf(stderr, "Warning: Buffer overflow in copy_buffer\n");
-        buffer_asm[BUFFER_SIZE - 1] = '\0';
+        buffer_asm[len] = '\0';
     }
 
     buffer_to_rust(buffer_asm);
+    
+    // buffer_to_rust uses to_string() which is now owned (cloned) so we can safely free here.
+    free(buffer_asm);
 }
 
-char buffer_asm_styled[BUFFER_SIZE];
 void copy_buffer_styled(void* user_data, enum disassembler_style style, const char* format, ...) {
     // Use the parameter to prevent optimization
     (void)user_data;  // mark as unused
@@ -59,17 +75,35 @@ void copy_buffer_styled(void* user_data, enum disassembler_style style, const ch
     va_list ap;
     va_start(ap, format);
     
-    // Use return value to check for truncation
-    int result = vsnprintf(buffer_asm_styled, BUFFER_SIZE, format, ap);
+    int len = vsnprintf(NULL, 0, format, ap);
     
     va_end(ap);
 
-    if (result < 0 || result >= BUFFER_SIZE) {
-        fprintf(stderr, "Warning: Buffer overflow in copy_buffer_styled\n");
-        buffer_asm_styled[BUFFER_SIZE - 1] = '\0';
+    if (len < 0) {
+        fprintf(stderr, "Warning: vsnprintf \n");
     }
 
-    buffer_to_rust(buffer_asm_styled);
+    char * buffer_asm = malloc(len + 1);
+
+    if (!buffer_asm) {
+        fprintf(stderr, "Warning: buffer_asm malloc failed \n");
+    }
+
+    va_start(ap, format);
+    // Use return value to check for truncation
+    int result = vsnprintf(buffer_asm, len + 1, format, ap);
+    
+    va_end(ap);
+
+    if (result < 0 || result >= len + 1) {
+        fprintf(stderr, "Warning: Buffer overflow in copy_buffer\n");
+        buffer_asm[len] = '\0';
+    }
+
+    buffer_to_rust(buffer_asm);
+    
+    // buffer_to_rust uses to_string() which is now owned (cloned) so we can safely free here.
+    free(buffer_asm);
 }
 
 void show_buffer(struct disassemble_info *info) {
