@@ -35,6 +35,18 @@ fn execute_command(command: &str, arguments: Vec<&str>) {
     };
 }
 
+fn execute_command_with_env(command: &str, args: Vec<&str>, env: &[(&str, &str)]) {
+    let mut cmd = std::process::Command::new(command);
+    cmd.args(&args);
+    for (key, value) in env {
+        cmd.env(key, value);
+    }
+    let status = cmd.status().expect(&format!("Failed to execute {}", command));
+    if !status.success() {
+        panic!("Error '{}' exited with code {:?}", command, status.code());
+    }
+}
+
 fn change_dir(directory: &str) {
     // Go to another directory, and panic on error
 
