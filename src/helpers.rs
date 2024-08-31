@@ -34,6 +34,9 @@ extern "C" {
         info: *const DisassembleInfoRaw,
         arch: c_uint,
         mach: c_ulong,
+        vma: u64,
+        length: u64,
+        buffer: *const u8,
     );
 
     pub(crate) fn set_print_address_func(

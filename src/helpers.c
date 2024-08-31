@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <bfd.h>
 #include <dis-asm.h>
 
@@ -21,7 +20,15 @@ void buffer_to_rust(char *buffer);
 
 /*** Generic helpers ***/
 
-#define BUFFER_SIZE 64
+/***
+https://lore.kernel.org/lkml/20220801013834.156015-1-andres@anarazel.de/
+
+At one point, libbfd init_disassemble_info started taking 4 arguments instead of 3.
+The 4th argument is a styled fprintf function.
+
+Here we will implement copy_buffer_styled, which will just be a wrapper that ignores style changes.
+***/
+#define BUFFER_SIZE 512
 char buffer_asm[BUFFER_SIZE];
 void copy_buffer(void* useless, const char* format, ...) {
     /* Construct the final opcode into buffer_asm */
@@ -33,6 +40,20 @@ void copy_buffer(void* useless, const char* format, ...) {
     vsnprintf(buffer_asm, BUFFER_SIZE, format, ap);
     va_end(ap);
     buffer_to_rust(buffer_asm);
+}
+
+#define BUFFER_SIZE 512
+char buffer_asm_styled[BUFFER_SIZE];
+void copy_buffer_styled(void* useless, enum disassembler_style style, const char* format, ...) {
+    /* Construct the final opcode into buffer_asm */
+    UNUSED_VARIABLE(useless);
+    UNUSED_VARIABLE(style);
+
+    va_list ap;
+    va_start(ap, format);
+    vsnprintf(buffer_asm_styled, BUFFER_SIZE, format, ap);
+    va_end(ap);
+    buffer_to_rust(buffer_asm_styled);
 }
 
 void show_buffer(struct disassemble_info *info) {
@@ -55,8 +76,7 @@ disassemble_info* new_disassemble_info() {
 
 bfd_boolean configure_disassemble_info(struct disassemble_info *info, asection *section, bfd *bfdFile) {
     /* Construct and configure the disassembler_info class using stdout */
-    // Signature change since binutils >=2.39 https://github.com/bpftrace/bpftrace/pull/2328
-    init_disassemble_info(info, stdout, (fprintf_ftype) copy_buffer, NULL);
+    init_disassemble_info(info, stdout,(fprintf_ftype) copy_buffer, (fprintf_styled_ftype) copy_buffer_styled);
     info->arch = bfd_get_arch (bfdFile);
     info->mach = bfd_get_mach (bfdFile);
     info->section = section;
@@ -67,12 +87,22 @@ bfd_boolean configure_disassemble_info(struct disassemble_info *info, asection *
     return bfd_malloc_and_get_section (bfdFile, section, &info->buffer);
 }
 
-void configure_disassemble_info_buffer(struct disassemble_info *info, enum bfd_architecture arch, unsigned long mach) {
-    /* A variant of configure_disassemble_info() for buffers */
-  
-    init_disassemble_info (info, stdout, (fprintf_ftype) copy_buffer, NULL);
+void configure_disassemble_info_buffer(
+    struct disassemble_info *info,
+    enum bfd_architecture arch,
+    unsigned long mach,
+    uint64_t vma,
+    uint64_t length,
+    uint8_t *buffer
+) {
+    init_disassemble_info(info, stdout, (fprintf_ftype) copy_buffer, (fprintf_styled_ftype) copy_buffer_styled);
+    
     info->arch = arch;
     info->mach = mach;
+    info->buffer_vma = vma;
+    info->buffer_length = length;
+    info->buffer = buffer;
+    
     info->read_memory_func = buffer_read_memory;
 }
 
