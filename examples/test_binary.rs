@@ -17,7 +17,7 @@ extern "C" fn change_address(addr: c_ulong, _info: *const uintptr_t) {
     utils::opcode_buffer_append(&format!("0x{:x}", addr));
 }
 
-fn test_ls(max_instructions: Option<u8>) {
+fn test_ls(max_instructions: Option<u32>) {
     println!("From an ELF");
 
     let bfd = match bfd::Bfd::openr("/bin/ls", "elf64-x86-64") {
@@ -128,5 +128,5 @@ fn test_ls(max_instructions: Option<u8>) {
 }
 
 fn main() {
-    test_ls(Some(12));
+    test_ls(Some(65535));
 }
