@@ -210,8 +210,11 @@ fn main() {
     println!("cargo:rustc-link-lib=static=opcodes");
     println!("cargo:rustc-link-lib=static=iberty");
 
-    // Link to zlib
+    // Link to zlib, zstd and sframe
     println!("cargo:rustc-link-search=native=/usr/lib/"); // Arch Linux
     println!("cargo:rustc-link-search=native=/usr/lib/x86_64-linux-gnu/"); // Debian based
     println!("cargo:rustc-link-lib=static=z");
+    println!("cargo:rustc-link-lib=sframe"); // Adjust if necessary
+    println!("cargo:rustc-link-lib=zstd");
+
 }
