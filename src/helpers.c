@@ -30,29 +30,45 @@ Here we will implement copy_buffer_styled, which will just be a wrapper that ign
 ***/
 #define BUFFER_SIZE 512
 char buffer_asm[BUFFER_SIZE];
-void copy_buffer(void* useless, const char* format, ...) {
-    /* Construct the final opcode into buffer_asm */
-    UNUSED_VARIABLE(useless);
+int copy_buffer(void* useless, const char* format, ...) {
+    // Use the parameter to prevent optimization
+    (void)useless;  // mark as unused
 
     va_list ap;
-
     va_start(ap, format);
-    vsnprintf(buffer_asm, BUFFER_SIZE, format, ap);
+    
+    // Use return value to check for truncation
+    int result = vsnprintf(buffer_asm, BUFFER_SIZE, format, ap);
+    
     va_end(ap);
+
+    if (result < 0 || result >= BUFFER_SIZE) {
+        fprintf(stderr, "Warning: Buffer overflow in copy_buffer\n");
+        buffer_asm[BUFFER_SIZE - 1] = '\0';
+    }
+
     buffer_to_rust(buffer_asm);
 }
 
-#define BUFFER_SIZE 512
 char buffer_asm_styled[BUFFER_SIZE];
-void copy_buffer_styled(void* useless, enum disassembler_style style, const char* format, ...) {
-    /* Construct the final opcode into buffer_asm */
-    UNUSED_VARIABLE(useless);
-    UNUSED_VARIABLE(style);
+void copy_buffer_styled(void* user_data, enum disassembler_style style, const char* format, ...) {
+    // Use the parameter to prevent optimization
+    (void)user_data;  // mark as unused
+    (void)style;
 
     va_list ap;
     va_start(ap, format);
-    vsnprintf(buffer_asm_styled, BUFFER_SIZE, format, ap);
+    
+    // Use return value to check for truncation
+    int result = vsnprintf(buffer_asm_styled, BUFFER_SIZE, format, ap);
+    
     va_end(ap);
+
+    if (result < 0 || result >= BUFFER_SIZE) {
+        fprintf(stderr, "Warning: Buffer overflow in copy_buffer_styled\n");
+        buffer_asm_styled[BUFFER_SIZE - 1] = '\0';
+    }
+
     buffer_to_rust(buffer_asm_styled);
 }
 
@@ -95,6 +111,11 @@ void configure_disassemble_info_buffer(
     uint64_t length,
     uint8_t *buffer
 ) {
+    if (info == NULL || buffer == NULL) {
+        fprintf(stderr, "Error: Null pointer passed to configure_disassemble_info_buffer\n");
+        return;
+    }
+
     init_disassemble_info(info, stdout, (fprintf_ftype) copy_buffer, (fprintf_styled_ftype) copy_buffer_styled);
     
     info->arch = arch;
@@ -102,8 +123,23 @@ void configure_disassemble_info_buffer(
     info->buffer_vma = vma;
     info->buffer_length = length;
     info->buffer = buffer;
-    
+
     info->read_memory_func = buffer_read_memory;
+
+    // Use volatile to prevent optimization
+    volatile int check = (info->arch != 0) && (info->mach != 0) && (info->buffer != NULL);
+    if (!check) {
+        fprintf(stderr, "Error: Invalid configuration in configure_disassemble_info_buffer\n");
+        return;
+    }
+
+    //   // Initialize additional necessary fields if required
+    // info->buffer = NULL;  // Or point to a valid buffer if already allocated
+    // info->buffer_vma = 0; // Set this as per your buffer's VMA
+    // info->buffer_length = 0;  // Set this to the correct buffer length
+    
+    // printf("Disassemble info configured: arch=%d, mach=%lu\n", info->arch, info->mach);
+    // printf("Info->buffer_vma: %lu, buffer_length: %d\n", info->buffer_vma, info->buffer_length);
 }
 
 typedef void (*print_address_func) (bfd_vma addr, struct disassemble_info *dinfo);
@@ -112,14 +148,15 @@ void set_print_address_func(struct disassemble_info *info, print_address_func pr
 }
 
 asection* set_buffer(struct disassemble_info *info, bfd_byte* buffer, unsigned int length, bfd_vma vma) {
-    /* Configure the buffet that will be disassembled */
+    /* Configure the buffer that will be disassembled */
     info->buffer = buffer;
     info->buffer_length = length;
     info->buffer_vma = vma;
 
-    asection *section = (asection*) malloc(sizeof(asection));
+    asection *section = (asection*) calloc(1, sizeof(asection));
     if (section) {
         info->section = section;
+        memset(section, 0, sizeof(asection));
         info->section->vma = vma;
     }
 
