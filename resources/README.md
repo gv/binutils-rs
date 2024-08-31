@@ -10,6 +10,7 @@ opcodes libraries from C:
 3. [test_buffer_mep](examples/src/test_buffer_mep.c): similar to the second
    example with a more exotic architecture and binutils builtins
 
+**THIS IS OUTDATED**
 For convenience, the [libbfd](http://htmlpreview.github.com/?https://github.com/guedou/binutils-rs/blob/master/resources/docs/ToothyWiki_%20Binutils_Bfd.html) and
 [libopcodes](http://htmlpreview.github.com/?https://github.com/guedou/binutils-rs/blob/master/resources/docs/ToothyWiki_%20Binutils_Libopcodes.html) documentation from
 toothycat.net is archived in this repository.
@@ -17,17 +18,7 @@ toothycat.net is archived in this repository.
 
 ## Building examples
 
-The examples assume that binutils 2.29.1 is built at the root of this
-repostitory. They can be compiled by typing `make` in the `src/` directory.
+The examples assume that binutils 2.43 is built at the root of this
+repostitory. 
 
-Here is how binutils dynamic libraries can be installed:
-```
-curl https://ftp.gnu.org/gnu/binutils/binutils-2.29.1.tar.gz -O
-tar xzvf binutils-2.29.1.tar.gz
-cd binutils-2.29.1/
-./configure --prefix=../built --enable-shared --enable-targets=all
-make -j8
-```
-
-Note: by default binutils does not produce shared libraries. When enabling all
-targets, the resulting `objdump` binary is 61MB!
+It can be compiled by doing `cargo build` at the root of this repository.
