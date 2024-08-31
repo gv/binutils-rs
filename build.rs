@@ -172,8 +172,8 @@ fn build_binutils(version: &str, sha256sum: &str, output_directory: &str, target
 }
 
 fn main() {
-    let version = "2.29.1";
-    let sha256 = "0d9d2bbf71e17903f26a676e7fba7c200e581c84b8f2f43e72d875d0e638771c";
+    let version = "2.43";
+    let sha256 = "025c436d15049076ebe511d29651cc4785ee502965a8839936a65518582bdd64";
 
     // Retrieve targets to build
     let targets_var = match env::var_os("TARGETS") {
