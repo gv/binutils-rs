@@ -14,6 +14,21 @@ void override_print_address(bfd_vma addr, struct disassemble_info *info)
   printf ("0x%x", addr);
 }
 
+static int
+  fprintf_styled_func (void *arg,
+  		      enum disassembler_style st ATTRIBUTE_UNUSED,
+  		      const char *fmt ATTRIBUTE_UNUSED, ...)
+  {
+  int res;
+  va_list ap;
+
+  va_start (ap, fmt);
+  res = vfprintf (arg, fmt, ap);
+  va_end (ap);
+
+  return res;
+}
+
 int main(int argc, char **argv)
 {
   bfd                     *bfdFile;
@@ -51,8 +66,9 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
+
   /* Construct and configure the disassembler_info class */ 
-  init_disassemble_info (&info, stdout, (fprintf_ftype) fprintf);
+  init_disassemble_info (&info, stdout, (fprintf_ftype) fprintf, (fprintf_styled_ftype) fprintf_styled_func);
   info.print_address_func = override_print_address;
   info.arch          = bfd_get_arch (bfdFile);
   info.mach          = bfd_get_mach (bfdFile);
