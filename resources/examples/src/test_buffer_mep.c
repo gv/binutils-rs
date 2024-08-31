@@ -76,6 +76,7 @@ int main (int argc, char ** argv) {
 
   /* Construct and configure the disassembler_info structure */
   init_disassemble_info (&info, stdout, (fprintf_ftype) fprintf, (fprintf_styled_ftype) fprintf_styled_func);
+  info.disassembler_options = "intel";
   info.arch = bfd_get_arch (bfdFile);
   info.mach = bfd_get_mach (bfdFile);
   info.section = section;
