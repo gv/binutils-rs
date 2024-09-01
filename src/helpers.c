@@ -121,11 +121,16 @@ void show_buffer(struct disassemble_info *info) {
 
 disassemble_info* new_disassemble_info() {
     /* Return a new structure */
-    struct disassemble_info *info = malloc (sizeof(struct disassemble_info));
+    struct disassemble_info *info = (disassemble_info *) calloc (1, sizeof(struct disassemble_info));
     return info;
 }
 
 bfd_boolean configure_disassemble_info(struct disassemble_info *info, asection *section, bfd *bfdFile) {
+    if (info == NULL || section == NULL || bfdFile == NULL) {
+        fprintf(stderr, "Error: Null pointer passed to configure_disassemble_info\n");
+        return FALSE;
+    }
+
     /* Construct and configure the disassembler_info class using stdout */
     init_disassemble_info(info, stdout,(fprintf_ftype) copy_buffer, (fprintf_styled_ftype) copy_buffer_styled);
     info->arch = bfd_get_arch (bfdFile);
@@ -134,6 +139,9 @@ bfd_boolean configure_disassemble_info(struct disassemble_info *info, asection *
 
     info->buffer_vma = section->vma;
     info->buffer_length = section->size;
+
+    /* Set default flavor to intel for architectures that support it. */
+    info->disassembler_options = "intel";
 
     return bfd_malloc_and_get_section (bfdFile, section, &info->buffer);
 }
@@ -155,7 +163,6 @@ asection* configure_disassemble_info_buffer(
     
     info->arch = arch;
     info->mach = mach;
-    info->read_memory_func = buffer_read_memory;
     /* Configure the buffer that will be disassembled */
     info->buffer = buffer;
     info->buffer_length = length;
@@ -175,6 +182,8 @@ asection* configure_disassemble_info_buffer(
         info->section->vma = vma;
     }
 
+    /* Set default flavor to intel for architectures that support it. */
+    info->disassembler_options = "intel";
     return (asection*) section;
 }
 
