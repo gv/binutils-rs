@@ -10,6 +10,7 @@
 #include <string.h>
 #include <bfd.h>
 #include <dis-asm.h>
+#include <time.h>
 
 void buffer_to_rust(char *buffer);
 
@@ -137,7 +138,7 @@ bfd_boolean configure_disassemble_info(struct disassemble_info *info, asection *
     return bfd_malloc_and_get_section (bfdFile, section, &info->buffer);
 }
 
-void configure_disassemble_info_buffer(
+asection* configure_disassemble_info_buffer(
     struct disassemble_info *info,
     enum bfd_architecture arch,
     unsigned long mach,
@@ -147,45 +148,25 @@ void configure_disassemble_info_buffer(
 ) {
     if (info == NULL || buffer == NULL) {
         fprintf(stderr, "Error: Null pointer passed to configure_disassemble_info_buffer\n");
-        return;
+        return NULL;
     }
 
     init_disassemble_info(info, stdout, (fprintf_ftype) copy_buffer, (fprintf_styled_ftype) copy_buffer_styled);
     
     info->arch = arch;
     info->mach = mach;
-    info->buffer_vma = vma;
-    info->buffer_length = length;
-    info->buffer = buffer;
-
     info->read_memory_func = buffer_read_memory;
-
-    // Use volatile to prevent optimization
-    volatile int check = (info->arch != 0) && (info->mach != 0) && (info->buffer != NULL);
-    if (!check) {
-        fprintf(stderr, "Error: Invalid configuration in configure_disassemble_info_buffer\n");
-        return;
-    }
-
-    //   // Initialize additional necessary fields if required
-    // info->buffer = NULL;  // Or point to a valid buffer if already allocated
-    // info->buffer_vma = 0; // Set this as per your buffer's VMA
-    // info->buffer_length = 0;  // Set this to the correct buffer length
-    
-    // printf("Disassemble info configured: arch=%d, mach=%lu\n", info->arch, info->mach);
-    // printf("Info->buffer_vma: %lu, buffer_length: %d\n", info->buffer_vma, info->buffer_length);
-}
-
-typedef void (*print_address_func) (bfd_vma addr, struct disassemble_info *dinfo);
-void set_print_address_func(struct disassemble_info *info, print_address_func print_function) {
-    info->print_address_func = print_function;
-}
-
-asection* set_buffer(struct disassemble_info *info, bfd_byte* buffer, unsigned int length, bfd_vma vma) {
     /* Configure the buffer that will be disassembled */
     info->buffer = buffer;
     info->buffer_length = length;
     info->buffer_vma = vma;
+
+    // Use volatile to prevent optimization
+    volatile int check = (info->buffer == NULL);
+    if (check) {
+        fprintf(stderr, "Error: Invalid configuration in configure_disassemble_info_buffer\n");
+        return NULL;
+    }
 
     asection *section = (asection*) calloc(1, sizeof(asection));
     if (section) {
@@ -195,6 +176,11 @@ asection* set_buffer(struct disassemble_info *info, bfd_byte* buffer, unsigned i
     }
 
     return (asection*) section;
+}
+
+typedef void (*print_address_func) (bfd_vma addr, struct disassemble_info *dinfo);
+void set_print_address_func(struct disassemble_info *info, print_address_func print_function) {
+    info->print_address_func = print_function;
 }
 
 asection* get_disassemble_info_section(struct disassemble_info *info) {

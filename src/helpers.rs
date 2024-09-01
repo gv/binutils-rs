@@ -5,7 +5,7 @@
 
 use std::ffi::CStr;
 
-use libc::{c_char, c_uchar, c_uint, c_ulong, uintptr_t};
+use libc::{c_char, c_uint, c_ulong, uintptr_t};
 
 use bfd::BfdRaw;
 use opcodes::DisassembleInfoRaw;
@@ -37,19 +37,12 @@ extern "C" {
         vma: u64,
         length: u64,
         buffer: *const u8,
-    );
+    ) -> *const SectionRaw;
 
     pub(crate) fn set_print_address_func(
         info: *const DisassembleInfoRaw,
         print_function: extern "C" fn(c_ulong, *const uintptr_t),
     );
-
-    pub(crate) fn set_buffer(
-        info: *const DisassembleInfoRaw,
-        buffer: *const c_uchar,
-        length: c_uint,
-        vma: c_ulong,
-    ) -> *const SectionRaw;
 
     pub(crate) fn free_disassemble_info(info: *const DisassembleInfoRaw, free_section: bool);
 

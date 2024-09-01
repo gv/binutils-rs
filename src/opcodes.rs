@@ -110,8 +110,7 @@ impl DisassembleInfo {
                 ));
             };
             
-            
-            helpers::configure_disassemble_info_buffer(
+            let section = helpers::configure_disassemble_info_buffer(
                 self.info,
                 arch,
                 mach,
@@ -120,7 +119,6 @@ impl DisassembleInfo {
                 ptr,
             );
     
-            let section = helpers::set_buffer(self.info, ptr, len as u32, offset);
             if section.is_null() {
                 return Err(Error::DisassembleInfoError(
                     "set_buffer() malloc error!".to_string(),
