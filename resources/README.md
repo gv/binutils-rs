@@ -10,7 +10,7 @@ opcodes libraries from C:
 3. [test_buffer_mep](examples/src/test_buffer_mep.c): similar to the second
    example with a more exotic architecture and binutils builtins
 
-**THIS IS OUTDATED**
+**As of September 2024, the following documentation is outdated:**
 For convenience, the [libbfd](http://htmlpreview.github.com/?https://github.com/guedou/binutils-rs/blob/master/resources/docs/ToothyWiki_%20Binutils_Bfd.html) and
 [libopcodes](http://htmlpreview.github.com/?https://github.com/guedou/binutils-rs/blob/master/resources/docs/ToothyWiki_%20Binutils_Libopcodes.html) documentation from
 toothycat.net is archived in this repository.
