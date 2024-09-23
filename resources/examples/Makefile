@@ -1,3 +1,5 @@
+# Copyright (C) 2018 Guillaume Valadon <guillaume@valadon.net>
+
 BINUTILS_BUILT_DIR=../../target/built
 CFLAG_INCLUDES=-I$(BINUTILS_BUILT_DIR)/include/
 CFLAGS=-ggdb2 -fPIC
