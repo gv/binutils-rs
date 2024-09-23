@@ -98,11 +98,11 @@ impl DisassembleInfo {
         offset: u64,
     ) -> Result<(), Error> {
         utils::check_null_pointer(self.info, "info pointer is null!")?;
-    
+
         unsafe {
             let ptr = buffer.as_ptr();
             utils::check_null_pointer(ptr, "buffer pointer is null!")?;
-    
+
             let len = buffer.len();
             if len == 0 {
                 return Err(Error::DisassembleInfoError(
@@ -118,10 +118,10 @@ impl DisassembleInfo {
                 len as u64,
                 ptr,
             );
-    
+
             if section.is_null() {
                 return Err(Error::DisassembleInfoError(
-                    "set_buffer() malloc error!".to_string(),
+                    "helpers::configure_disassemble_info_buffer() malloc error!".to_string(),
                 ));
             }
 
