@@ -180,7 +180,7 @@ pub fn arch_list() -> Vec<String> {
                 stop = true;
                 break;
             }
-            let arch = unsafe { CStr::from_ptr(*item as *const i8).to_str() };
+            let arch = unsafe { CStr::from_ptr(*item as *const c_char).to_str() };
             match arch {
                 Ok(s) => ret_vec.push(s.to_string()),
                 Err(_) => ret_vec.push("arch_list() - from_ptr() error !".to_string()),
