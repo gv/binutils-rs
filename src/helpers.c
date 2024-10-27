@@ -34,7 +34,7 @@ int copy_buffer_styled(void* user_data, enum disassembler_style style, const cha
 
 int copy_buffer(void* useless, const char* format, ...) {
     // Use the parameter to prevent optimization
-    (void)useless;  // mark as unused
+    (void) useless;  // mark as unused
 
 
     va_list ap;
@@ -75,7 +75,7 @@ int copy_buffer(void* useless, const char* format, ...) {
 
 int copy_buffer_styled(void* user_data, enum disassembler_style style, const char* format, ...) {
     // Use the parameter to prevent optimization
-    (void)user_data;  // mark as unused
+    (void) user_data;  // mark as unused
     (void)style;
 
     va_list ap;
@@ -139,7 +139,7 @@ bfd_boolean configure_disassemble_info(struct disassemble_info *info, asection *
     }
 
     /* Construct and configure the disassembler_info class using stdout */
-    init_disassemble_info(info, stdout, (fprintf_ftype) copy_buffer, copy_buffer_styled);
+    init_disassemble_info (info, stdout, (fprintf_ftype) copy_buffer, copy_buffer_styled);
     info->arch = bfd_get_arch (bfdFile);
     info->mach = bfd_get_mach (bfdFile);
     info->section = section;
