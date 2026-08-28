@@ -140,7 +140,9 @@ fn build_binutils(version: &str, sha256sum: &str, output_directory: &str, target
     
         execute_command(
             "./configure",
-            vec![&prefix_arg, &format!("--enable-targets={}", targets)],
+            vec![
+				&prefix_arg, &format!("--enable-targets={}", targets),
+				"--disable-gprofng", "--disable-gold", "--disable-ld"],
         );
     
         // For make commands, we need to ensure CFLAGS is passed
