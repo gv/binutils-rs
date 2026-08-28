@@ -210,6 +210,7 @@ fn main() {
 
     // Link to zlib, zstd and sframe
     println!("cargo:rustc-link-search=native=/usr/lib/"); // Arch Linux
+    println!("cargo:rustc-link-search=native=/usr/lib64/"); // RedHat
     println!("cargo:rustc-link-search=native=/usr/lib/{}-linux-gnu/", // Debian based
              env::var("CARGO_CFG_TARGET_ARCH").unwrap());
     println!("cargo:rustc-link-lib=static=z");
