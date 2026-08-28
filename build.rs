@@ -136,7 +136,7 @@ fn build_binutils(version: &str, sha256sum: &str, output_directory: &str, target
 
         // Set CFLAGS environment variable to include -fcommon
         // https://github.com/easybuilders/easybuild-easyconfigs/issues/11988
-        std::env::set_var("CFLAGS", "-fcommon -g -O2");
+        std::env::set_var("CFLAGS", "-fcommon -g -O2 -fPIC");
     
         execute_command(
             "./configure",
