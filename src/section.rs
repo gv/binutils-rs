@@ -3,6 +3,7 @@
 
 use libc::c_ulong;
 
+use std::marker::PhantomData;
 use std::ptr;
 
 use utils;
@@ -15,15 +16,17 @@ extern "C" {
 pub enum SectionRaw {}
 
 #[derive(Clone, Copy)]
-pub struct Section {
+pub struct Section<'a> {
     pub section: *const SectionRaw,
+    _phantom: PhantomData<&'a ()>,
 }
 
-impl Section {
+impl<'a> Section<'a> {
     #[allow(dead_code)]
-    pub(crate) fn null() -> Section {
+    pub(crate) fn null() -> Section<'a> {
         Section {
             section: ptr::null(),
+            _phantom: PhantomData,
         }
     }
 
@@ -31,11 +34,12 @@ impl Section {
         self.section
     }
 
-    pub fn from_raw(section_raw: *const SectionRaw) -> Result<Section, Error> {
+    pub fn from_raw(section_raw: *const SectionRaw) -> Result<Section<'a>, Error> {
         utils::check_null_pointer(section_raw, "raw section pointer is null!")?;
 
         Ok(Section {
             section: section_raw,
+            _phantom: PhantomData,
         })
     }
 

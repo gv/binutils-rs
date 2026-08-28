@@ -64,7 +64,7 @@ fn test_ls(max_instructions: Option<u32>) {
     };
 
     // Configure the disassemble_info structure
-    match info.configure(section, bfd) {
+    match info.configure(section, &bfd) {
         Ok(_) => (),
         Err(e) => {
             println!("Error configure() - {}", e);

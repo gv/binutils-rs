@@ -102,7 +102,7 @@ fn test_buffer_compact(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     };
 
     // Configure the disassemble_info structure
-    match info.init_buffer(&buffer, bfd, offset) {
+    match info.init_buffer(&buffer, &bfd, offset) {
         Ok(_) => (),
         Err(e) => {
             println!("init_buffer() - {}", e);
@@ -178,7 +178,7 @@ fn test_buffer_iter(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     };
 
     // Disassemble the buffer using an iterator
-    for instruction in Instruction::from_buffer(&mut info, bfd, &buffer, offset) {
+    for instruction in Instruction::from_buffer(&mut info, &bfd, &buffer, offset) {
         println!("{}", instruction);
     }
 }

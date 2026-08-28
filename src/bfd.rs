@@ -32,6 +32,8 @@ extern "C" {
     fn bfd_get_arch(bfd: *const BfdRaw) -> c_uint;
 
     fn bfd_get_mach(bfd: *const BfdRaw) -> c_ulong;
+
+    fn bfd_close(bfd: *mut BfdRaw) -> c_ulong;
 }
 
 // Rust bfd types
@@ -39,7 +41,6 @@ extern "C" {
 //       - it allows to use the Rust type checker
 pub(crate) enum BfdRaw {}
 
-#[derive(Clone, Copy)]
 pub struct Bfd {
     bfd: *const BfdRaw,
     pub arch_mach: (u32, u64),
@@ -85,7 +86,7 @@ impl Bfd {
         Ok(())
     }
 
-    pub fn get_section_by_name(&self, section_name: &str) -> Result<Section, Error> {
+    pub fn get_section_by_name(&self, section_name: &str) -> Result<Section<'_>, Error> {
         utils::check_null_pointer(self.bfd, "bfd pointer is null!")?;
 
         let section_name_cstring = CString::new(section_name)?;
@@ -160,6 +161,16 @@ impl Bfd {
         };
         self.arch_mach = unsafe { (get_arch(arch_info), get_mach(arch_info)) };
         Ok(self.arch_mach)
+    }
+}
+
+impl Drop for Bfd {
+    fn drop(&mut self) {
+        if !self.bfd.is_null() {
+            unsafe {
+                bfd_close(self.bfd as *mut BfdRaw);
+            }
+        }
     }
 }
 
@@ -330,7 +341,7 @@ mod tests {
             }
         };
 
-        match info.configure(section, bfd) {
+        match info.configure(section, &bfd) {
             Ok(_) => assert!(true),
             Err(_) => assert!(false),
         };

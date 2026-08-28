@@ -27,7 +27,7 @@ pub fn disassemble_buffer(
     let mut info = DisassembleInfo::new()?;
 
     // Configure the disassemble_info structure
-    info.init_buffer(buffer, bfd, offset)?;
+    info.init_buffer(buffer, &bfd, offset)?;
 
     Ok(info)
 }

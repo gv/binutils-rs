@@ -56,7 +56,7 @@ impl<'a> Instruction<'a> {
     }
     pub fn from_buffer(
         info: &'a mut DisassembleInfo,
-        bfd: Bfd,
+        bfd: &Bfd,
         buffer: &[u8],
         offset: u64,
     ) -> Instruction<'a> {
@@ -125,7 +125,7 @@ mod tests {
         let mut info = opcodes::DisassembleInfo::new().unwrap();
 
         let buffer = vec![0x90];
-        let mut instruction = instruction::Instruction::from_buffer(&mut info, bfd, &buffer, 0);
+        let mut instruction = instruction::Instruction::from_buffer(&mut info, &bfd, &buffer, 0);
         match instruction.next() {
             Some(i) => assert_eq!(i.opcode, "nop"),
             None => assert!(false),

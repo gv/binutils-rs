@@ -63,7 +63,7 @@ impl DisassembleInfo {
         self.info
     }
 
-    pub fn configure(&self, section: Section, bfd: Bfd) -> Result<(), Error> {
+    pub fn configure(&self, section: Section<'_>, bfd: &Bfd) -> Result<(), Error> {
         utils::check_null_pointer(self.info, "info pointer is null!")?;
         utils::check_null_pointer(self.raw(), "section pointer is null!")?;
         utils::check_null_pointer(bfd.raw(), "bfd pointer is null!")?;
@@ -77,7 +77,7 @@ impl DisassembleInfo {
         Ok(())
     }
 
-    pub fn init_buffer(&mut self, buffer: &[u8], bfd: Bfd, offset: u64) -> Result<(), Error> {
+    pub fn init_buffer(&mut self, buffer: &[u8], bfd: &Bfd, offset: u64) -> Result<(), Error> {
         let disassemble_fn = match bfd.raw_disassembler(bfd.arch_mach.0, false, bfd.arch_mach.1) {
             Ok(f) => f,
             Err(e) => return Err(e),
@@ -213,7 +213,7 @@ mod tests {
         assert_eq!(di.info, std::ptr::null());
 
         let mut bfd = bfd::Bfd::empty();
-        match di.init_buffer(&[0x90], bfd, 0) {
+        match di.init_buffer(&[0x90], &bfd, 0) {
             Ok(_) => assert!(false),
             Err(_) => assert!(true),
         };
@@ -239,13 +239,13 @@ mod tests {
         assert_ne!(di.info, std::ptr::null());
 
         let section = section::Section::null();
-        match di.configure(section, bfd::Bfd::empty()) {
+        match di.configure(section, &bfd::Bfd::empty()) {
             Ok(_) => assert!(false),
             Err(_) => assert!(true),
         }
 
         let section = section::Section::from_raw(0x2807 as *const section::SectionRaw);
-        match di.configure(section.unwrap(), bfd::Bfd::empty()) {
+        match di.configure(section.unwrap(), &bfd::Bfd::empty()) {
             Ok(_) => assert!(false),
             Err(_) => assert!(true),
         }
