@@ -7,6 +7,7 @@ pub mod instruction;
 pub mod mach;
 pub mod opcodes;
 pub mod section;
+pub mod symbol;
 pub mod utils;
 
 extern crate libc;

@@ -1,14 +1,17 @@
 // Guillaume Valadon <guillaume@valadon.net>
 // binutils libbfd bindings - bfd.rs
 
-use libc::{c_char, c_uint, c_ulong, uintptr_t};
+use libc::{c_char, c_uint, c_ulong, uintptr_t, c_void};
 
 use std;
 use std::ffi::{CStr, CString};
 
-use helpers::{get_arch, get_mach, get_start_address, macro_bfd_big_endian, CURRENT_OPCODE};
+use helpers::{
+    get_arch, get_mach, get_start_address, macro_bfd_big_endian,
+    macro_bfd_read_minisymbols,  CURRENT_OPCODE};
 use opcodes::{disassembler, DisassembleInfo, DisassembleInfoRaw, DisassemblerFunction};
 use section::{Section, SectionRaw};
+use symbol::Symbol;
 use utils;
 use Error;
 
@@ -44,6 +47,9 @@ pub(crate) enum BfdRaw {}
 pub struct Bfd {
     bfd: *const BfdRaw,
     pub arch_mach: (u32, u64),
+    minisyms: *const c_void,
+    symbol_count: c_uint,
+    ms_size: c_uint
 }
 
 impl Bfd {
@@ -56,6 +62,9 @@ impl Bfd {
         Bfd {
             bfd: std::ptr::null(),
             arch_mach: (0, 0),
+            minisyms: std::ptr::null(),
+            symbol_count: 0,
+            ms_size: 0,
         }
     }
 
@@ -73,6 +82,9 @@ impl Bfd {
         Ok(Bfd {
             bfd,
             arch_mach: (0, 0),
+            minisyms: std::ptr::null(),
+            symbol_count: 0,
+            ms_size: 0,
         })
     }
 
@@ -162,10 +174,50 @@ impl Bfd {
         self.arch_mach = unsafe { (get_arch(arch_info), get_mach(arch_info)) };
         Ok(self.arch_mach)
     }
+
+    pub fn read_minisyms(&mut self) {
+        if self.symbol_count == 0 {
+            self.symbol_count = unsafe {
+                macro_bfd_read_minisymbols(
+                    self.bfd as *mut BfdRaw, 0,
+                    &mut self.minisyms, &mut self.ms_size)
+            };
+        }
+    }
+
+    pub fn get_symbol_count(&mut self) -> u32 {
+        self.read_minisyms();
+        self.symbol_count
+    }
+
+    pub fn get_symbol_at(&mut self, index: u32) -> Option<Symbol<'_>> {
+        self.read_minisyms();
+
+        if index >= self.symbol_count || self.minisyms.is_null() {
+            return None;
+        }
+
+        let minisym_ptr = unsafe {
+            (self.minisyms as *const u8).offset(index as isize * self.ms_size as isize)
+                as *const c_void
+        };
+
+        Some(Symbol::from_minisymbol(self.bfd as *mut BfdRaw, minisym_ptr))
+    }
 }
 
 impl Drop for Bfd {
     fn drop(&mut self) {
+        /* 
+        "minisymbols" are allocated with malloc, unlike bfd_make_empty_symbol
+        which calls bfd_zalloc that gets memory from a stack that's managed by 
+        the bfd
+         */
+        unsafe {
+            if !self.minisyms.is_null() {
+                libc::free(self.minisyms as *mut c_void);
+            }
+        }
         if !self.bfd.is_null() {
             unsafe {
                 bfd_close(self.bfd as *mut BfdRaw);

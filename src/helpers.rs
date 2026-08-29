@@ -5,15 +5,21 @@
 
 use std::ffi::CStr;
 
-use libc::{c_char, c_uint, c_ulong, uintptr_t};
+use libc::{c_char, c_uint, c_ulong, uintptr_t, c_int};
 
 use bfd::BfdRaw;
 use opcodes::DisassembleInfoRaw;
 use section::SectionRaw;
+use symbol::SymbolRaw;
 
 extern "C" {
     // libbfd helpers
     pub(crate) fn macro_bfd_big_endian(bfd: *const BfdRaw) -> bool;
+
+    pub(crate) fn macro_bfd_read_minisymbols(
+		bfd: *mut BfdRaw, dynamic: c_int,
+		minisymsp: *mut *const core::ffi::c_void,
+		sizep: *mut c_uint) -> c_uint;
 
     pub(crate) fn get_start_address(bfd: *const BfdRaw) -> c_ulong;
 
@@ -55,6 +61,28 @@ extern "C" {
     // Custom helpers
     #[allow(dead_code)]
     pub(crate) fn show_buffer(info: *const DisassembleInfoRaw);
+
+    // Symbol helpers
+    pub(crate) fn macro_bfd_make_empty_symbol(abfd: *mut BfdRaw) -> *mut SymbolRaw;
+
+    pub(crate) fn macro_bfd_minisymbol_to_symbol(
+        abfd: *mut BfdRaw,
+        is_dynamic: bool,
+        minisym: *const core::ffi::c_void,
+        sym: *mut SymbolRaw,
+    ) -> *mut SymbolRaw;
+
+    pub(crate) fn get_symbol_name(sym: *const SymbolRaw) -> *const c_char;
+
+    pub(crate) fn get_symbol_value(sym: *const SymbolRaw) -> c_ulong;
+
+    pub(crate) fn get_symbol_type(abfd: *mut BfdRaw, sym: *mut SymbolRaw) -> i8;
+
+    pub(crate) fn get_symbol_flags(sym: *const SymbolRaw) -> c_ulong;
+
+    pub(crate) fn get_symbol_section_name(sym: *const SymbolRaw) -> *const c_char;
+
+	pub(crate) fn is_symbol_undefined(sym: *const SymbolRaw) -> bool;
 }
 
 pub(crate) static mut CURRENT_OPCODE: Option<String> = None;

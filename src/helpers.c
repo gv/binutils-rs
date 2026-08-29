@@ -227,6 +227,12 @@ unsigned int macro_bfd_big_endian(bfd *bfdFile) {
     return bfd_big_endian(bfdFile);
 }
 
+unsigned int macro_bfd_read_minisymbols (bfd *abfd,
+	bool dynamic,
+	void **minisymsp,
+	unsigned int *sizep) {
+	return bfd_read_minisymbols(abfd, dynamic, minisymsp, sizep);
+}
 
 /*** bfd_arch_info structure helpers ***/
 
@@ -243,4 +249,46 @@ unsigned long get_mach(struct bfd_arch_info *arch_info) {
 
 unsigned long get_section_size(asection *section) {
     return section->size;
+}
+
+/*** symbol helpers ***/
+
+asymbol* macro_bfd_make_empty_symbol(bfd *abfd) {
+    return bfd_make_empty_symbol(abfd);
+}
+
+asymbol* macro_bfd_minisymbol_to_symbol(bfd *abfd, bool is_dynamic,
+    const void *minisym, asymbol *sym) {
+    return bfd_minisymbol_to_symbol(abfd, is_dynamic, minisym, sym);
+}
+
+const char* get_symbol_name(asymbol *sym) {
+    if (!sym) return NULL;
+    return sym->name;
+}
+
+bfd_vma get_symbol_value(asymbol *sym) {
+    if (!sym) return 0;
+    return sym->value;
+}
+
+char get_symbol_type(bfd *abfd, asymbol *sym) {
+    symbol_info syminfo;
+    bfd_get_symbol_info(abfd, sym, &syminfo);
+    return syminfo.type;
+}
+
+flagword get_symbol_flags(asymbol *sym) {
+    if (!sym) return 0;
+    return sym->flags;
+}
+
+const char* get_symbol_section_name(asymbol *sym) {
+    if (!sym || !sym->section)
+        return "*ABS*";
+    return sym->section->name;
+}
+
+int is_symbol_undefined(asymbol *sym) {
+	return bfd_is_und_section(sym->section);
 }
