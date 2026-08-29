@@ -217,4 +217,5 @@ fn main() {
     println!("cargo:rustc-link-lib=sframe"); // Adjust if necessary
     println!("cargo:rustc-link-lib=zstd");
 
+	println!("cargo::rerun-if-changed=src/helpers.c");
 }
